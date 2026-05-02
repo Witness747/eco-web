@@ -1,0 +1,17 @@
+# Environment
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+ai_env/
+
+# Database
+*.db
+
+# Logs
+*.log
