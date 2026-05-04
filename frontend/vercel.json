@@ -1,1 +1,1 @@
-{"rewrites":[{"source":"/(.*)","destination":"/"}],"outputDirectory":"build"}
+{"rewrites":[{"source":"/(.*)","destination":"/"}],"outputDirectory":"dist"}
