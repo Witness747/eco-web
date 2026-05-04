@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const API = process.env.REACT_APP_API_URL
-  ? `${process.env.REACT_APP_API_URL}/api`
+const API = process.env.VITE_API_URL
+  ? `${process.env.VITE_API_URL}/api`
   : "http://localhost:8000/api";
 
 export const sendMessage    = (msg)      => axios.post(`${API}/chat`, { message: msg });
