@@ -1,11 +1,11 @@
-
 fastapi
-
 uvicorn
-
 psycopg2-binary
-
 groq
-
 pydantic
-
+python-dotenv
+pytesseract
+Pillow
+pyzbar
+python-multipart
+requests

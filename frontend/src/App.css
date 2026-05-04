@@ -1,245 +1,575 @@
-/* 
-  ECOBOT PROFESSIONAL DASHBOARD CSS
-  Theme: Adaptive Eco-Clarity (Light / Emerald Dark Blue)
-  Focus: Breathing room for AI feedback & removal of UI clutter
-*/
+/* ============================================================
+   ECOBOT — UNDERLORD DESIGN SYSTEM
+   Typeface: "DM Sans" for UI, "DM Serif Display" for headings
+   Palette: Deep forest dark / Crisp white light
+   Accent: Emerald #50C878
+   ============================================================ */
 
-/* --- 1. THEME DEFINITIONS --- */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap');
+
+/* ── TOKENS ── */
 :root {
-  /* Light Mode (Inspired by image_028b87.png) */
-  --bg-color: #fcfcfc;
-  --nav-bg: rgba(255, 255, 255, 0.85);
-  --text-main: #1e293b;
-  --accent: #10b981;        /* Emerald Green */
-  --bubble-ai: #ffffff;
-  --bubble-user: #f0fdf4;
-  --border-color: #f1f5f9;
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-  --interactive-text-color: #64748b;
+  --emerald: #50C878;
+  --emerald-dim: #2e9e55;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --transition: 0.18s ease;
 }
 
-[data-theme='dark'] {
-  /* Emerald / Dark Blue Mode */
-  --bg-color: #011627;      /* Deep Midnight Blue */
-  --nav-bg: rgba(1, 22, 39, 0.9);
-  --text-main: #f0fdf4;
-  --accent: #34d399;        /* Bright Emerald */
-  --bubble-ai: #064e3b;     /* Deep Emerald Green */
-  --bubble-user: #0f172a;   /* Dark Blue-Gray */
-  --border-color: #065f46;
-  --shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-  --interactive-text-color: #94a3b8;
+[data-theme="light"] {
+  --bg:           #f2f5f0;
+  --surface:      #ffffff;
+  --surface-2:    #eef2eb;
+  --border:       rgba(0,0,0,0.08);
+  --text:         #111a10;
+  --text-2:       #4a5c47;
+  --text-3:       #8a9e86;
+  --user-bubble:  #daf4e4;
+  --user-text:    #0d3320;
+  --ai-bubble:    #ffffff;
+  --ai-text:      #111a10;
+  --nav-bg:       rgba(242,245,240,0.85);
+  --input-bg:     #ffffff;
+  --danger:       #d73a3a;
 }
 
-/* --- 2. CORE LAYOUT --- */
-* {
+[data-theme="dark"] {
+  --bg:           #0d1a12;
+  --surface:      #152019;
+  --surface-2:    #1e2e22;
+  --border:       rgba(255,255,255,0.07);
+  --text:         #e2ede0;
+  --text-2:       #94b090;
+  --text-3:       #5a7556;
+  --user-bubble:  #0f3620;
+  --user-text:    #a8e6bc;
+  --ai-bubble:    #162019;
+  --ai-text:      #d9ecd6;
+  --nav-bg:       rgba(13,26,18,0.9);
+  --input-bg:     #1a271e;
+  --danger:       #ff6b6b;
+}
+
+/* ── RESET ── */
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-body, html {
-  font-family: 'Inter', -apple-system, sans-serif;
-  overflow-x: hidden;
-  background-color: var(--bg-color);
-  color: var(--text-main);
-  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
 }
 
-.app-container {
-  min-height: 100vh;
+/* ── APP SHELL ── */
+.app {
   display: flex;
   flex-direction: column;
+  height: 100dvh;
+  max-width: 780px;
+  margin: 0 auto;
+  background: var(--bg);
 }
 
-/* --- 3. PROFESSIONAL TOP NAV --- */
-/* Pushes content to corners as requested */
-.top-nav {
+/* ── NAV ── */
+.nav {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 3rem;
+  justify-content: space-between;
+  padding: 12px 20px;
   background: var(--nav-bg);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-color);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 50;
 }
 
+/* Persona chip */
 .persona-chip {
-  font-size: 0.9rem;
-  font-weight: 500;
-  background: var(--bubble-user);
-  padding: 0.5rem 1.2rem;
-  border-radius: 100px;
-  color: var(--accent);
-  border: 1px solid var(--border-color);
-}
-
-.theme-toggle {
-  background: none;
-  border: 1px solid var(--border-color);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  color: var(--text-main);
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
-}
-
-.theme-toggle:hover {
-  background: var(--border-color);
-}
-
-/* --- 4. CENTER HERO (CLEANED) --- */
-/* Removes the square images/clutter found in image_026dfb.png */
-.hero-section {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 5rem 0 3rem 0;
-  text-align: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--emerald);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border: 1.5px solid var(--emerald);
+  border-radius: 999px;
+  transition: color var(--transition), border-color var(--transition), box-shadow var(--transition);
 }
 
-.leaf-logo {
-  font-size: 80px;
-  margin-bottom: 1.5rem;
-  /* Pure organic icon, no square/engine overlap */
-  filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.3));
+.persona-chip.pulsing {
+  animation: chip-pulse 1.4s ease forwards;
+}
+
+@keyframes chip-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(80,200,120,0.5); }
+  40%  { box-shadow: 0 0 0 8px rgba(80,200,120,0.1); }
+  100% { box-shadow: 0 0 0 0 rgba(80,200,120,0); }
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--emerald);
+  flex-shrink: 0;
+  animation: dot-blink 2s infinite;
+}
+
+@keyframes dot-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+.nav-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.nav-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  font-family: inherit;
+}
+
+.nav-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.nav-btn.danger {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.nav-btn.danger:hover {
+  background: rgba(215, 58, 58, 0.08);
+}
+
+/* ── HERO ── */
+.hero {
+  text-align: center;
+  padding: 20px 16px 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.leaf-icon {
+  font-size: 36px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 6px rgba(80,200,120,0.35));
   transition: transform 0.3s ease;
 }
 
-.leaf-logo:hover {
-  transform: rotate(10deg) scale(1.1);
+.hero:hover .leaf-icon {
+  transform: scale(1.12) rotate(-5deg);
 }
 
-.interactive-text {
-  font-size: 1.1rem;
-  color: var(--interactive-text-color);
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  animation: fadeInOut 3s infinite ease-in-out;
+.hero-sub {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-top: 4px;
+  font-style: italic;
 }
 
-/* --- 5. WIDE-BREATH CHAT INTERFACE --- */
-/* Designed so AI feedback can stretch and breathe */
-.chat-window {
+/* ── CHAT ── */
+.chat {
   flex: 1;
-  width: 95%;
-  max-width: 1200px; /* Expansive maximum width */
-  margin: 0 auto;
+  overflow-y: auto;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem; /* Large gap between messages for clarity */
-  padding-bottom: 150px;
+  gap: 14px;
 }
 
-.message-row {
+.empty-state {
+  text-align: center;
+  color: var(--text-3);
+  font-size: 14px;
+  padding: 40px 20px;
+}
+
+/* ── MESSAGE ROW ── */
+.msg {
   display: flex;
-  width: 100%;
-  animation: slideUp 0.4s ease-out;
+  align-items: flex-start;
+  gap: 8px;
 }
 
-.message-row.user { justify-content: flex-end; }
-.message-row.assistant { justify-content: flex-start; }
+.msg--user {
+  justify-content: flex-end;
+}
 
+.msg--assistant {
+  justify-content: flex-start;
+}
+
+/* ── BUBBLES ── */
 .bubble {
-  max-width: 85%; /* Allows AI content to occupy most of the screen width */
-  padding: 1.75rem 2.25rem;
-  border-radius: 24px;
-  font-size: 1.1rem;
-  line-height: 1.7; /* Increased line height for academic readability */
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border-color);
-  position: relative;
-  white-space: pre-wrap; /* Preserves vertical lists from the LLM */
+  max-width: 76%;
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  font-size: 14.5px;
+  line-height: 1.65;
 }
 
-.assistant .bubble {
-  background: var(--bubble-ai);
-  border-bottom-left-radius: 4px;
-}
-
-.user .bubble {
-  background: var(--bubble-user);
+.msg--user .bubble {
+  background: var(--user-bubble);
+  color: var(--user-text);
   border-bottom-right-radius: 4px;
-  color: var(--accent);
-  font-weight: 500;
 }
 
-/* --- 6. PROFESSIONAL BOTTOM INPUT --- */
-.input-area {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  padding: 2.5rem;
-  background: linear-gradient(transparent, var(--bg-color) 45%);
+.msg--assistant .bubble {
+  background: var(--ai-bubble);
+  color: var(--ai-text);
+  border-bottom-left-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.bubble--loading {
   display: flex;
-  justify-content: center;
-  z-index: 90;
+  gap: 5px;
+  align-items: center;
+  padding: 14px 20px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--emerald);
+  animation: bounce 1.2s infinite;
+}
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40%           { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ── MARKDOWN LITE ── */
+.bubble-content { display: flex; flex-direction: column; gap: 4px; }
+.md-h1 { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--emerald); margin: 10px 0 4px; }
+.md-h2 { font-size: 14px; font-weight: 600; color: var(--emerald-dim); text-transform: uppercase; letter-spacing: 0.06em; margin: 8px 0 2px; }
+.md-p  { font-size: 14.5px; color: var(--ai-text); }
+.md-bold { font-weight: 600; color: var(--text); font-size: 14.5px; }
+.md-li { font-size: 14px; color: var(--text-2); padding-left: 14px; position: relative; }
+.md-li::before { content: "•"; position: absolute; left: 0; color: var(--emerald); }
+
+/* ── META PILLS ── */
+.meta-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.meta-pill {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+
+.meta-pill.expiry-safe          { background: #d4f5e2; color: #0d5c2e; }
+.meta-pill.expiry-expiring-soon { background: #fff3cd; color: #7a5800; }
+.meta-pill.expiry-expired       { background: #fde8e8; color: #8b1a1a; }
+.meta-pill--storage             { background: var(--surface-2); }
+
+/* ── DELETE BUTTON ── */
+.delete-btn {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 6px;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity var(--transition), color var(--transition);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.msg:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover { color: var(--danger); }
+
+/* ── PRODUCT CARD ── */
+.product-card {
+  margin-top: 12px;
+  border: 2px solid var(--emerald);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  background: var(--surface);
+}
+
+.pc-header { margin-bottom: 10px; }
+.pc-name   { font-weight: 600; font-size: 15px; color: var(--text); }
+.pc-brand  { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+.pc-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.pc-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pc-badge--points {
+  background: var(--surface-2);
+  color: var(--emerald-dim);
+  border: 1px solid var(--emerald);
+}
+
+.pc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pc-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  font-family: inherit;
+  transition: opacity var(--transition);
+}
+
+.pc-btn--online {
+  background: var(--emerald);
+  color: #fff;
+}
+
+.pc-btn--offline {
+  background: var(--surface-2);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+
+.pc-btn:hover { opacity: 0.85; }
+
+/* ── INPUT BAR ── */
+.input-bar {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--nav-bg);
+  backdrop-filter: blur(12px);
+  flex-shrink: 0;
 }
 
 .input-wrapper {
-  width: 100%;
-  max-width: 850px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 6px 6px 16px;
+}
+
+.input-wrapper input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 14.5px;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.input-wrapper input::placeholder { color: var(--text-3); }
+
+.btn-send {
+  padding: 7px 18px;
+  background: var(--emerald);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity var(--transition);
+}
+
+.btn-send:disabled { opacity: 0.45; cursor: default; }
+.btn-send:not(:disabled):hover { opacity: 0.85; }
+
+.btn-camera {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 17px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  background: var(--bubble-ai);
-  padding: 0.6rem;
-  border-radius: 100px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+  justify-content: center;
+  transition: background var(--transition);
 }
 
-input {
-  flex: 1;
+.btn-camera:hover { background: var(--surface); }
+
+/* ── CAMERA OVERLAY ── */
+.camera-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.camera-modal {
+  background: #000;
+  width: 100%;
+  max-width: 780px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  overflow: hidden;
+}
+
+.camera-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  color: #fff;
+  font-size: 13px;
+  background: #111;
+}
+
+.close-btn {
+  background: none;
   border: none;
-  background: transparent;
-  color: var(--text-main);
-  padding: 0 1.5rem;
-  font-size: 1.05rem;
-  outline: none;
-}
-
-input::placeholder {
-  color: var(--interactive-text-color);
-  opacity: 0.6;
-}
-
-.send-btn {
-  background: var(--accent);
-  color: white;
-  border: none;
-  padding: 0.8rem 1.8rem;
-  border-radius: 100px;
+  color: #fff;
+  font-size: 18px;
   cursor: pointer;
+}
+
+.camera-feed {
+  width: 100%;
+  display: block;
+  max-height: 55vh;
+  object-fit: cover;
+}
+
+.camera-footer {
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  background: #111;
+}
+
+.btn-capture {
+  padding: 12px 40px;
+  background: var(--emerald);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 15px;
   font-weight: 600;
-  transition: transform 0.2s, background 0.2s;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-.send-btn:hover {
-  background: #059669;
-  transform: scale(1.03);
+/* ── TRASH PANEL ── */
+.trash-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* --- 7. ANIMATIONS --- */
-@keyframes fadeInOut {
-  0%, 100% { opacity: 0.4; transform: translateY(0); }
-  50% { opacity: 0.9; transform: translateY(-3px); }
+.trash-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
+.trash-role {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
 }
 
-/* --- 8. RESPONSIVE --- */
-@media (max-width: 768px) {
-  .top-nav { padding: 1rem 1.5rem; }
-  .chat-window { width: 92%; }
-  .bubble { max-width: 95%; padding: 1.25rem; }
-  .input-area { padding: 1.5rem; }
+.trash-content {
+  font-size: 14px;
+  color: var(--text-2);
+  margin: 6px 0 10px;
+  line-height: 1.5;
+  max-height: 60px;
+  overflow: hidden;
+}
+
+.restore-btn {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--emerald);
+  color: var(--emerald);
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition);
+}
+
+.restore-btn:hover { background: rgba(80,200,120,0.1); }
+
+/* ── SCROLLBAR ── */
+.chat::-webkit-scrollbar,
+.trash-panel::-webkit-scrollbar { width: 4px; }
+.chat::-webkit-scrollbar-thumb,
+.trash-panel::-webkit-scrollbar-thumb {
+  background: var(--text-3);
+  border-radius: 4px;
+}
+
+/* ── MOBILE ── */
+@media (max-width: 480px) {
+  .nav { padding: 10px 14px; }
+  .bubble { max-width: 88%; font-size: 14px; }
+  .persona-chip { font-size: 11px; padding: 5px 10px; }
+  .nav-btn { padding: 5px 9px; font-size: 12px; }
 }
