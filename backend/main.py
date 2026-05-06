@@ -45,15 +45,17 @@ app.add_middleware(
 # ================= DB =================
 def db():
     try:
+        url = os.getenv("DATABASE_URL", "")
+        # Strip channel_binding if Neon added it
+        url = url.replace("&channel_binding=require", "").replace("?channel_binding=require", "")
         return psycopg2.connect(
-            DATABASE_URL,
+            url,
             cursor_factory=RealDictCursor,
             sslmode="require"
         )
     except Exception as e:
         print("DB ERROR:", e)
         return None
-
 
 # ================= OCR (Pre-processed) =================
 def extract_text(image_bytes: bytes) -> str:
