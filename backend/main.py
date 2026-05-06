@@ -405,3 +405,156 @@ async def purge():
 @app.get("/api/status")
 async def status():
     return {"status": "online", "service": "EcoBot Engine"}
+# ================= SHOPPING GALLERY =================
+
+SHOPPING_GALLERY = [
+    {
+        "id": 1,
+        "name": "Patagonia",
+        "category": "clothing",
+        "description": "Recycled & environmentally-friendly outdoor clothing",
+        "eco_grade": "A+",
+        "icon": "👕",
+        "url": "https://www.patagonia.com",
+    },
+    {
+        "id": 2,
+        "name": "Reformation",
+        "category": "clothing",
+        "description": "Fashionable clothing with sustainability transparency",
+        "eco_grade": "A",
+        "icon": "👗",
+        "url": "https://www.thereformation.com",
+    },
+    {
+        "id": 3,
+        "name": "People Tree",
+        "category": "clothing",
+        "description": "Fair trade organic cotton clothing",
+        "eco_grade": "A",
+        "icon": "🧵",
+        "url": "https://www.peopletree.co.uk",
+    },
+    {
+        "id": 4,
+        "name": "Bambooee",
+        "category": "home",
+        "description": "Reusable bamboo products for kitchen & cleaning",
+        "eco_grade": "A+",
+        "icon": "🎋",
+        "url": "https://www.bambooee.com",
+    },
+    {
+        "id": 5,
+        "name": "West Elm",
+        "category": "home",
+        "description": "Sustainable home decor & furniture",
+        "eco_grade": "B",
+        "icon": "🏠",
+        "url": "https://www.westelm.com",
+    },
+    {
+        "id": 6,
+        "name": "Seventh Generation",
+        "category": "home",
+        "description": "Eco-friendly household cleaning products",
+        "eco_grade": "A",
+        "icon": "🧹",
+        "url": "https://www.seventhgeneration.com",
+    },
+    {
+        "id": 7,
+        "name": "Dr. Bronner's",
+        "category": "care",
+        "description": "Organic & fair trade personal care products",
+        "eco_grade": "A+",
+        "icon": "🧴",
+        "url": "https://www.drbronner.com",
+    },
+    {
+        "id": 8,
+        "name": "Burt's Bees",
+        "category": "care",
+        "description": "Natural beeswax & essential oil personal care",
+        "eco_grade": "A",
+        "icon": "🐝",
+        "url": "https://www.burtsbees.com",
+    },
+    {
+        "id": 9,
+        "name": "SheaMoisture",
+        "category": "care",
+        "description": "Natural organic coconut oil personal care",
+        "eco_grade": "A",
+        "icon": "🌿",
+        "url": "https://www.sheamoisture.com",
+    },
+    {
+        "id": 10,
+        "name": "Lush",
+        "category": "beauty",
+        "description": "Handmade beauty from natural ingredients",
+        "eco_grade": "A",
+        "icon": "💆",
+        "url": "https://www.lush.com",
+    },
+    {
+        "id": 11,
+        "name": "Juice Beauty",
+        "category": "beauty",
+        "description": "Organic beauty from sustainable grapes",
+        "eco_grade": "A",
+        "icon": "🌸",
+        "url": "https://www.juicebeauty.com",
+    },
+    {
+        "id": 12,
+        "name": "Acure",
+        "category": "beauty",
+        "description": "Sustainable beauty from argan stem cells",
+        "eco_grade": "A",
+        "icon": "✨",
+        "url": "https://www.acureorganics.com",
+    },
+    {
+        "id": 13,
+        "name": "Thrive Market",
+        "category": "grocery",
+        "description": "Online sustainable & eco-friendly grocery",
+        "eco_grade": "A",
+        "icon": "🛒",
+        "url": "https://www.thrivemarket.com",
+    },
+    {
+        "id": 14,
+        "name": "Local Harvest",
+        "category": "grocery",
+        "description": "Local farmers markets & sustainable food",
+        "eco_grade": "A+",
+        "icon": "🌾",
+        "url": "https://www.localharvest.org",
+    },
+    {
+        "id": 15,
+        "name": "Full Harvest",
+        "category": "grocery",
+        "description": "Surplus produce from local farms",
+        "eco_grade": "A+",
+        "icon": "🥦",
+        "url": "https://www.fullharvest.com",
+    },
+]
+
+
+@app.get("/api/shopping-gallery")
+async def shopping_gallery(category: str = None):
+    """Return eco-friendly shopping brands, optionally filtered by category."""
+    if category and category != "all":
+        filtered = [p for p in SHOPPING_GALLERY if p["category"] == category]
+    else:
+        filtered = SHOPPING_GALLERY
+    return {
+        "total": len(filtered),
+        "category": category or "all",
+        "products": filtered,
+    }
