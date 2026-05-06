@@ -8,11 +8,16 @@ import {
   restoreMessage,
   purgeSession,
 } from "./api";
+import ShoppingGallery from "./components/ShoppingGallery";
 import "./App.css";
+
+const SHOPPING_TRIGGERS = [
+  "shop", "shopping", "gallery", "buy", "brand", "store",
+  "where to buy", "eco brand", "sustainable brand", "purchase",
+];
 
 /* ─────────────────────────────────────────
    PRODUCT CARD COMPONENT
-   High-contrast emerald border, buy buttons
 ───────────────────────────────────────── */
 function ProductCard({ card }) {
   if (!card) return null;
@@ -56,9 +61,7 @@ function ProductCard({ card }) {
           )}
           <button
             className="pc-btn pc-btn--offline"
-            onClick={() =>
-              alert(`Search for "${card.name}" at your nearest grocery or eco-store.`)
-            }
+            onClick={() => alert(`Search for "${card.name}" at your nearest grocery or eco-store.`)}
           >
             Find Offline
           </button>
@@ -72,56 +75,57 @@ function ProductCard({ card }) {
    MAIN APP
 ───────────────────────────────────────── */
 export default function App() {
-  const [messages, setMessages]   = useState([]);
-  const [trash, setTrash]         = useState([]);
-  const [view, setView]           = useState("chat");
-  const [input, setInput]         = useState("");
-  const [theme, setTheme]         = useState(localStorage.getItem("theme") || "light");
-  const [persona, setPersona]     = useState("Eco Analyst");
-  const [pulsing, setPulsing]     = useState(false);
-  const [cameraOn, setCameraOn]   = useState(false);
-  const [loading, setLoading]     = useState(false);
+  const [messages, setMessages]       = useState([]);
+  const [trash, setTrash]             = useState([]);
+  const [view, setView]               = useState("chat");
+  const [input, setInput]             = useState("");
+  const [theme, setTheme]             = useState(localStorage.getItem("theme") || "light");
+  const [persona, setPersona]         = useState("Eco Analyst");
+  const [pulsing, setPulsing]         = useState(false);
+  const [cameraOn, setCameraOn]       = useState(false);
+  const [loading, setLoading]         = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
+  const [showGalleryBanner, setShowGalleryBanner] = useState(false);
 
   const videoRef  = useRef(null);
   const canvasRef = useRef(null);
   const chatRef   = useRef(null);
 
-  /* ── Load history ── */
   useEffect(() => { loadChat(); }, []);
 
   const loadChat = async () => {
     try {
       const res = await getHistory();
       setMessages(res.data || []);
-    } catch { /* silently fail if backend down */ }
+    } catch { }
   };
 
   const loadTrash = async () => {
     try {
       const res = await getTrash();
       setTrash(res.data || []);
-    } catch { /* silently fail */ }
+    } catch { }
   };
 
-  /* ── Scroll to bottom ── */
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  /* ── Persona pulse trigger ── */
   const triggerPersona = (label) => {
     setPersona(label);
     setPulsing(true);
     setTimeout(() => setPulsing(false), 1400);
   };
 
-  /* ── Theme ── */
   const toggleTheme = () => {
     const t = theme === "light" ? "dark" : "light";
     setTheme(t);
     localStorage.setItem("theme", t);
   };
+
+  /* ── Detect shopping intent ── */
+  const isShoppingQuery = (text) =>
+    SHOPPING_TRIGGERS.some(trigger => text.toLowerCase().includes(trigger));
 
   /* ── Send chat ── */
   const handleSend = async () => {
@@ -129,6 +133,14 @@ export default function App() {
     if (!text || loading) return;
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: text }]);
+
+    /* Show gallery banner if shopping intent detected */
+    if (isShoppingQuery(text)) {
+      setShowGalleryBanner(true);
+    } else {
+      setShowGalleryBanner(false);
+    }
+
     setLoading(true);
     try {
       const res = await sendMessage(text);
@@ -136,13 +148,15 @@ export default function App() {
       triggerPersona(p || "Eco Analyst");
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);
     } catch {
-      setMessages(prev => [...prev, { role: "assistant", content: "⚠️ Backend not responding. Check your server." }]);
+      setMessages(prev => [
+        ...prev,
+        { role: "assistant", content: "⚠️ Backend not responding. Check your server." },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
-  /* ── Delete / restore ── */
   const handleDelete = async (id) => {
     await deleteMessage(id);
     loadChat();
@@ -153,11 +167,11 @@ export default function App() {
     loadTrash();
   };
 
-  /* ── Revolution Protocol (purge) ── */
   const handlePurge = async () => {
     if (!window.confirm("Reset the Pulse? This will archive all current messages.")) return;
     await purgeSession();
     setMessages([]);
+    setShowGalleryBanner(false);
     triggerPersona("Eco Analyst");
   };
 
@@ -165,7 +179,7 @@ export default function App() {
   const startCamera = async () => {
     try {
       setCameraOn(true);
-      await new Promise(r => setTimeout(r, 100)); // let DOM mount
+      await new Promise(r => setTimeout(r, 100));
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch {
@@ -184,7 +198,6 @@ export default function App() {
     const canvas = canvasRef.current;
     const video  = videoRef.current;
     if (!canvas || !video) return;
-
     canvas.width  = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext("2d").drawImage(video, 0, 0);
@@ -197,38 +210,32 @@ export default function App() {
         formData.append("file", blob, "scan.jpg");
         const res = await analyzeProduct(formData);
         const { reply, persona: p, product_card, expiry, storage } = res.data;
-
         triggerPersona(p || "Eco Analyst");
-
         setMessages(prev => [
           ...prev,
-          {
-            role: "assistant",
-            content: reply,
-            product_card,
-            meta: { expiry, storage },
-          },
+          { role: "assistant", content: reply, product_card, meta: { expiry, storage } },
         ]);
       } catch {
-        setMessages(prev => [...prev, { role: "assistant", content: "⚠️ Scan failed. Try better lighting." }]);
+        setMessages(prev => [
+          ...prev,
+          { role: "assistant", content: "⚠️ Scan failed. Try better lighting." },
+        ]);
       } finally {
         setScanLoading(false);
       }
     }, "image/jpeg", 0.92);
   };
 
-  /* ── Render message content with markdown-lite ── */
+  /* ── Markdown-lite renderer ── */
   const renderContent = (content) => {
     if (!content) return null;
     return content.split("\n").map((line, i) => {
       if (line.startsWith("## ")) return <h3 key={i} className="md-h2">{line.slice(3)}</h3>;
       if (line.startsWith("# "))  return <h2 key={i} className="md-h1">{line.slice(2)}</h2>;
-      if (line.startsWith("**") && line.endsWith("**")) {
+      if (line.startsWith("**") && line.endsWith("**"))
         return <p key={i} className="md-bold">{line.slice(2, -2)}</p>;
-      }
-      if (line.startsWith("- ") || line.startsWith("* ")) {
+      if (line.startsWith("- ") || line.startsWith("* "))
         return <li key={i} className="md-li">{line.slice(2)}</li>;
-      }
       if (line.trim() === "") return <br key={i} />;
       return <p key={i} className="md-p">{line}</p>;
     });
@@ -245,10 +252,28 @@ export default function App() {
         </div>
 
         <div className="nav-actions">
-          <button className="nav-btn" onClick={() => { setView("chat"); loadChat(); }} title="Chat">
+          <button
+            className={`nav-btn ${view === "chat" ? "nav-btn--active" : ""}`}
+            onClick={() => { setView("chat"); loadChat(); }}
+            title="Chat"
+          >
             💬
           </button>
-          <button className="nav-btn" onClick={() => { setView("trash"); loadTrash(); }} title="Trash">
+
+          {/* ── Shopping Gallery nav button ── */}
+          <button
+            className={`nav-btn ${view === "gallery" ? "nav-btn--active" : ""}`}
+            onClick={() => setView(view === "gallery" ? "chat" : "gallery")}
+            title="Eco Shopping Gallery"
+          >
+            🛍
+          </button>
+
+          <button
+            className={`nav-btn ${view === "trash" ? "nav-btn--active" : ""}`}
+            onClick={() => { setView("trash"); loadTrash(); }}
+            title="Trash"
+          >
             🗑
           </button>
           <button className="nav-btn danger" onClick={handlePurge} title="Reset Pulse">
@@ -284,7 +309,6 @@ export default function App() {
                   {renderContent(m.content)}
                 </div>
 
-                {/* Expiry + Storage meta */}
                 {m.meta && (
                   <div className="meta-pills">
                     {m.meta.expiry && (
@@ -300,7 +324,6 @@ export default function App() {
                   </div>
                 )}
 
-                {/* Product card */}
                 {m.product_card && <ProductCard card={m.product_card} />}
               </div>
 
@@ -310,6 +333,25 @@ export default function App() {
             </div>
           ))}
 
+          {/* ── Shopping Gallery inline banner ── */}
+          {showGalleryBanner && !loading && (
+            <div className="gallery-banner">
+              <span>🛍 Want to explore eco-friendly brands?</span>
+              <button
+                className="gallery-banner-btn"
+                onClick={() => { setView("gallery"); setShowGalleryBanner(false); }}
+              >
+                Open Gallery →
+              </button>
+              <button
+                className="gallery-banner-close"
+                onClick={() => setShowGalleryBanner(false)}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {(loading || scanLoading) && (
             <div className="msg msg--assistant">
               <div className="bubble bubble--loading">
@@ -317,6 +359,13 @@ export default function App() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── GALLERY VIEW ── */}
+      {view === "gallery" && (
+        <div className="gallery-view">
+          <ShoppingGallery />
         </div>
       )}
 
@@ -367,9 +416,7 @@ export default function App() {
             </div>
             <video ref={videoRef} autoPlay playsInline className="camera-feed" />
             <div className="camera-footer">
-              <button className="btn-capture" onClick={capture}>
-                Capture
-              </button>
+              <button className="btn-capture" onClick={capture}>Capture</button>
             </div>
           </div>
         </div>
