@@ -127,19 +127,31 @@ def fetch_product(barcode: str):
             return None
         p = data["product"]
         name = p.get("product_name", "Unknown Product")
+        brand = p.get("brands", "")
+
+        # Build smarter search query using name + brand
+        query = f"{brand} {name}".strip().replace(" ", "+")
+
         return {
             "name": name,
-            "brand": p.get("brands", ""),
+            "brand": brand,
             "eco": p.get("ecoscore_grade", "N/A"),
             "category": p.get("categories", ""),
+            "barcode": barcode,
+            "image": p.get("image_front_url", ""),        # product image from OpenFoodFacts
+            "ingredients": p.get("ingredients_text", ""), # raw ingredients
+            "nutriscore": p.get("nutriscore_grade", "N/A"),
             "links": {
-                "amazon": f"https://www.amazon.in/s?k={name.replace(' ', '+')}",
-                "flipkart": f"https://www.flipkart.com/search?q={name.replace(' ', '+')}",
+                "openfoodfacts": f"https://world.openfoodfacts.org/product/{barcode}",
+                "amazon": f"https://www.amazon.in/s?k={query}",
+                "flipkart": f"https://www.flipkart.com/search?q={query}",
+                "bigbasket": f"https://www.bigbasket.com/ps/?q={query}",  # India-relevant
+                "blinkit": f"https://blinkit.com/s/?q={query}",           # India-relevant
             }
         }
-    except Exception:
+    except Exception as e:
+        print("FETCH_PRODUCT ERROR:", e)
         return None
-
 
 # ================= ECO SCORE =================
 def eco_score(product) -> int:
