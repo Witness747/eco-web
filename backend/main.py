@@ -322,16 +322,19 @@ async def analyze(file: UploadFile = File(...)):
     store = storage_advice(product.get("name") if product else "")
     analysis, persona_label = ai_analysis(text, exp_text, product)
 
-    product_card = None
+  product_card = None
     if product:
         product_card = {
-            "name": product.get("name", "Unknown Product"),
-            "brand": product.get("brand", ""),
-            "eco_score": product.get("eco", "N/A"),
-            "eco_points": eco,
-            "links": product.get("links", {}),
+            "name":        product.get("name", "Unknown Product"),
+            "brand":       product.get("brand", ""),
+            "eco_score":   product.get("eco", "N/A"),
+            "eco_points":  eco,
+            "barcode":     product.get("barcode", ""),
+            "image":       product.get("image", ""),
+            "nutriscore":  product.get("nutriscore", "N/A"),
+            "ingredients": product.get("ingredients", ""),
+            "links":       product.get("links", {}),
         }
-
     return {
         "reply": analysis,
         "persona": persona_label,
