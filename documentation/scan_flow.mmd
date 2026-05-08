@@ -1,0 +1,29 @@
+flowchart TD
+    A([Start: User Clicks Capture]) --> B[Frontend: Capture JPEG Blob]
+    B --> C[Backend: Receive Image File]
+    
+    subgraph PreProcessing [Image Enhancement Layer]
+        C --> D[Convert to Grayscale]
+        D --> E[Apply 1.5x Contrast Boost]
+    end
+
+    E --> F{Extract Data}
+    F --> G[Run Tesseract OCR]
+    F --> H[Scan for Barcode]
+
+    H -- Barcode Found --> I[Query Open Food Facts API]
+    H -- No Barcode --> J[Analyze OCR Text via LLM]
+
+    I --> K[Identify Category]
+    J --> K
+
+    K --> L{Assign Persona}
+    L -- Food --> M[Persona: Food Scientist]
+    L -- Textile --> N[Persona: Textile Expert]
+    L -- Electronic --> O[Persona: Material Engineer]
+
+    M & N & O --> P[Generate AI Analysis]
+    P --> Q[Find 2 Best Alternatives]
+    
+    Q --> R[Return Data to Card Gallery]
+    R --> S([End: UI Renders Product Card])

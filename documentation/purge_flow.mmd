@@ -1,0 +1,15 @@
+flowchart TD
+    Start([User Clicks Reset Pulse]) --> Confirm{Confirm Reset?}
+    Confirm -- No --> End([End: No Change])
+    
+    Confirm -- Yes --> API[Call /api/purge Endpoint]
+    
+    subgraph Database_Logic [Neon SQL Transaction]
+        API --> DB_Connect[Connect to Neon SQL]
+        DB_Connect --> SQL["Execute: UPDATE chat_history SET is_deleted=TRUE"]
+        SQL --> Commit[Commit Transaction]
+    end
+
+    Commit --> UI_Update[Frontend: Clear Message State]
+    UI_Update --> Persona[Reset Persona to Eco Analyst]
+    Persona --> Success([End: Session Archived])

@@ -348,7 +348,7 @@ async def chat(req: Chat):
         "reply": reply,
         "persona": "Eco Analyst",
         "product_card": None,
-        "product_cards": product_cards,  # ← new list of cards
+        "product_cards": products,  # ← new list of cards
     }
 
 # ================= SCAN / ANALYZE =================

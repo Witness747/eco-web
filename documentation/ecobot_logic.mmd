@@ -1,0 +1,34 @@
+graph TD
+    %% Entities
+    User((User/Mobile App))
+
+    %% Frontend Layer (Vercel)
+    subgraph Vercel_Frontend [Vercel: Vite + React]
+        UI[Mobile Dashboard & UI]
+        Cam[Camera Capture Logic]
+        Gallery[Card Gallery & History]
+    end
+
+    %% Backend Layer (Railway)
+    subgraph Railway_Backend [Railway: FastAPI]
+        P1[Eco-Summarizer & AI]
+        P2[Trash & Disposal Logic]
+        P3[Memory Conservation]
+        P4[Recommendation Engine]
+    end
+
+    %% Database Layer (Neon)
+    DB[(Neon SQL Database)]
+
+    %% Data Flows
+    User -- "Scan Label" --> Cam
+    Cam -- "Image Data" --> P1
+    P1 -- "Clean Insights" --> P2
+    P2 -- "Disposal Data" --> UI
+    
+    UI -- "Request History" --> P3
+    P3 -- "Query Logs/SMS" --> DB
+    DB -- "Deleted History/Logs" --> Gallery
+    
+    P4 -- "2 Best Alternatives" --> Gallery
+    Gallery -- "Card Format" --> User
