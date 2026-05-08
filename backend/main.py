@@ -322,7 +322,7 @@ async def analyze(file: UploadFile = File(...)):
     store = storage_advice(product.get("name") if product else "")
     analysis, persona_label = ai_analysis(text, exp_text, product)
 
-  product_card = None
+    product_card = None
     if product:
         product_card = {
             "name":        product.get("name", "Unknown Product"),
