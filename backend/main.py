@@ -43,20 +43,24 @@ app.add_middleware(
 
 
 # ================= DB =================
-def db():
-    try:
-        url = os.getenv("DATABASE_URL", "")
-        # Strip channel_binding if Neon added it
-        url = url.replace("&channel_binding=require", "").replace("?channel_binding=require", "")
-        return psycopg2.connect(
-            url,
-            cursor_factory=RealDictCursor,
-            sslmode="require"
-        )
-    except Exception as e:
-        print("DB ERROR:", e)
-        return None
-
+def db(retries=3):
+    for attempt in range(retries):
+        try:
+            url = os.getenv("DATABASE_URL", "")
+            url = url.replace("&channel_binding=require", "").replace("?channel_binding=require", "")
+            conn = psycopg2.connect(
+                url,
+                cursor_factory=RealDictCursor,
+                sslmode="require",
+                connect_timeout=10,
+            )
+            return conn
+        except Exception as e:
+            print(f"DB ERROR (attempt {attempt+1}/{retries}):", e)
+            if attempt < retries - 1:
+                import time
+                time.sleep(1)
+    return None
 # ================= OCR (Pre-processed) =================
 def extract_text(image_bytes: bytes) -> str:
     """Greyscale + 1.5x contrast boost before Tesseract for better OCR on free tier."""
@@ -263,7 +267,6 @@ Provide a thorough analysis as instructed.
 class Chat(BaseModel):
     message: str
 
-
 @app.post("/api/chat")
 async def chat(req: Chat):
     res = client.chat.completions.create(
@@ -274,13 +277,56 @@ async def chat(req: Chat):
                 "content": (
                     "You are EcoBot, an AI assistant specialising in sustainability, "
                     "eco-friendly living, product safety, and green alternatives. "
-                    "Be concise, warm, and use Markdown formatting."
+                    "Be concise, warm, and use Markdown formatting. "
+                    "When recommending specific products, always include their "
+                    "full product name and brand clearly so they can be found online."
                 ),
             },
             {"role": "user", "content": req.message},
         ],
     )
     reply = res.choices[0].message.content
+
+    # ── Build product cards from reply if shopping intent detected ──
+    shopping_keywords = [
+        "buy", "shop", "amazon", "flipkart", "recommend",
+        "suggest", "water bottle", "product", "brand", "purchase",
+        "bigbasket", "blinkit", "where to find", "sustainable"
+    ]
+    has_shopping_intent = any(
+        kw in req.message.lower() for kw in shopping_keywords
+    )
+
+    # Extract product names from reply using simple pattern
+    product_cards = []
+    if has_shopping_intent:
+        # Match **Product Name** or numbered list items
+        names = re.findall(
+            r'\*\*([^*]{5,60})\*\*',
+            reply
+        )
+        seen = set()
+        for name in names[:4]:  # max 4 cards
+            clean = name.strip()
+            if clean and clean not in seen:
+                seen.add(clean)
+                query = clean.replace(" ", "+")
+                product_cards.append({
+                    "name": clean,
+                    "brand": "",
+                    "eco_score": "N/A",
+                    "eco_points": 0,
+                    "barcode": "",
+                    "image": "",
+                    "nutriscore": "N/A",
+                    "ingredients": "",
+                    "links": {
+                        "amazon":    f"https://www.amazon.in/s?k={query}+eco+friendly",
+                        "flipkart":  f"https://www.flipkart.com/search?q={query}",
+                        "bigbasket": f"https://www.bigbasket.com/ps/?q={query}",
+                        "blinkit":   f"https://blinkit.com/s/?q={query}",
+                    }
+                })
 
     conn = db()
     if conn:
@@ -302,8 +348,8 @@ async def chat(req: Chat):
         "reply": reply,
         "persona": "Eco Analyst",
         "product_card": None,
+        "product_cards": product_cards,  # ← new list of cards
     }
-
 
 # ================= SCAN / ANALYZE =================
 @app.post("/api/analyze-product")
