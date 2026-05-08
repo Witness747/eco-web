@@ -174,10 +174,11 @@ export default function App() {
   const isShoppingQuery = (text) =>
     SHOPPING_TRIGGERS.some(trigger => text.toLowerCase().includes(trigger));
 
-  /* ── Send chat ── */
+/* ── Send chat ── */
   const handleSend = async () => {
     const text = input.trim();
     if (!text || loading) return;
+    
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: text }]);
 
@@ -189,30 +190,34 @@ export default function App() {
 
     setLoading(true);
     try {
-      const res = await sendMessage(text);
-      const { reply, persona: p, product_cards } = res.data;
+      // Correct Axios Call
+      const response = await axios.post("https://eco-web-production.up.railway.app/api/chat", {
+        message: text 
+      });
+
+      // KEY FIX: Axios wraps data in .data. 
+      // And we must match the backend key 'products'
+      const { reply, persona: p, products } = response.data;
+
       triggerPersona(p || "Eco Analyst");
+
       setMessages(prev => [
         ...prev,
         {
           role: "assistant",
           content: reply,
-          product_cards: product_cards || [],
+          product_cards: products || [], // This feeds your ProductCard grid below
         },
       ]);
-    } catch {
+    } catch (error) {
+      console.error("Connection Error:", error);
       setMessages(prev => [
         ...prev,
-        { role: "assistant", content: "⚠️ Backend not responding. Check your server." },
+        { role: "assistant", content: "⚠️ Connection failed. Is Railway awake?" },
       ]);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDelete = async (id) => {
-    await deleteMessage(id);
-    loadChat();
   };
 
   const handleRestore = async (id) => {

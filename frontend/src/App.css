@@ -74,7 +74,7 @@ body {
   background: var(--bg);
 }
 
-/* ── NAV ── */
+/* ── NAV UPDATED ── */
 .nav {
   display: flex;
   align-items: center;
@@ -84,9 +84,13 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
+  
+  /* The Fixes */
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 1000;         /* High enough to beat all other elements */
+  pointer-events: auto;  /* Ensures the 'hand' cursor and clicks work */
+  width: 100%;           /* Prevents shrinking on some mobile browsers */
 }
 
 /* Persona chip */
