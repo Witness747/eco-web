@@ -14,6 +14,7 @@ import "./App.css";
 const SHOPPING_TRIGGERS = [
   "shop", "shopping", "gallery", "buy", "brand", "store",
   "where to buy", "eco brand", "sustainable brand", "purchase",
+  "amazon", "flipkart", "recommend", "suggest",
 ];
 
 /* ─────────────────────────────────────────
@@ -21,48 +22,95 @@ const SHOPPING_TRIGGERS = [
 ───────────────────────────────────────── */
 function ProductCard({ card }) {
   if (!card) return null;
-  const ecoColor = { a: "#50C878", b: "#8BC34A", c: "#FFC107", d: "#FF9800", e: "#f44336" };
+  const ecoColor = {
+    a: "#50C878", b: "#8BC34A", c: "#FFC107",
+    d: "#FF9800", e: "#f44336"
+  };
+  const nutriColor = {
+    a: "#1D9E75", b: "#8BC34A", c: "#FFC107",
+    d: "#FF9800", e: "#f44336"
+  };
   const grade = (card.eco_score || "").toLowerCase();
+  const nutri = (card.nutriscore || "").toLowerCase();
 
   return (
     <div className="product-card">
+      {card.image && (
+        <img
+          src={card.image}
+          alt={card.name}
+          className="pc-image"
+          onError={e => e.target.style.display = "none"}
+        />
+      )}
+
       <div className="pc-header">
         <div className="pc-name">{card.name}</div>
         {card.brand && <div className="pc-brand">{card.brand}</div>}
+        {card.barcode && <div className="pc-barcode">🔍 {card.barcode}</div>}
       </div>
 
       <div className="pc-badges">
         {card.eco_score && card.eco_score !== "N/A" && (
-          <span
-            className="pc-badge"
-            style={{ background: ecoColor[grade] || "#aaa", color: "#fff" }}
-          >
-            Eco {card.eco_score.toUpperCase()}
+          <span className="pc-badge"
+            style={{ background: ecoColor[grade] || "#aaa", color: "#fff" }}>
+            🌿 Eco {card.eco_score.toUpperCase()}
           </span>
         )}
-        {typeof card.eco_points === "number" && (
+        {card.nutriscore && card.nutriscore !== "N/A" && (
+          <span className="pc-badge"
+            style={{ background: nutriColor[nutri] || "#aaa", color: "#fff" }}>
+            🥗 Nutri {card.nutriscore.toUpperCase()}
+          </span>
+        )}
+        {typeof card.eco_points === "number" && card.eco_points !== 0 && (
           <span className="pc-badge pc-badge--points">
             {card.eco_points > 0 ? `+${card.eco_points}` : card.eco_points} pts
           </span>
         )}
       </div>
 
+      {card.ingredients && (
+        <details className="pc-ingredients">
+          <summary>📋 Ingredients</summary>
+          <p>{card.ingredients}</p>
+        </details>
+      )}
+
       {card.links && (
         <div className="pc-actions">
+          {card.links.openfoodfacts && (
+            <a className="pc-btn pc-btn--info"
+              href={card.links.openfoodfacts} target="_blank" rel="noreferrer">
+              OpenFoodFacts ↗
+            </a>
+          )}
           {card.links.amazon && (
-            <a className="pc-btn pc-btn--online" href={card.links.amazon} target="_blank" rel="noreferrer">
+            <a className="pc-btn pc-btn--online"
+              href={card.links.amazon} target="_blank" rel="noreferrer">
               Amazon ↗
             </a>
           )}
           {card.links.flipkart && (
-            <a className="pc-btn pc-btn--online" href={card.links.flipkart} target="_blank" rel="noreferrer">
+            <a className="pc-btn pc-btn--online"
+              href={card.links.flipkart} target="_blank" rel="noreferrer">
               Flipkart ↗
             </a>
           )}
-          <button
-            className="pc-btn pc-btn--offline"
-            onClick={() => alert(`Search for "${card.name}" at your nearest grocery or eco-store.`)}
-          >
+          {card.links.bigbasket && (
+            <a className="pc-btn pc-btn--online"
+              href={card.links.bigbasket} target="_blank" rel="noreferrer">
+              BigBasket ↗
+            </a>
+          )}
+          {card.links.blinkit && (
+            <a className="pc-btn pc-btn--online"
+              href={card.links.blinkit} target="_blank" rel="noreferrer">
+              Blinkit ↗
+            </a>
+          )}
+          <button className="pc-btn pc-btn--offline"
+            onClick={() => alert(`Search for "${card.name}" at your nearest eco-store.`)}>
             Find Offline
           </button>
         </div>
@@ -75,16 +123,16 @@ function ProductCard({ card }) {
    MAIN APP
 ───────────────────────────────────────── */
 export default function App() {
-  const [messages, setMessages]       = useState([]);
-  const [trash, setTrash]             = useState([]);
-  const [view, setView]               = useState("chat");
-  const [input, setInput]             = useState("");
-  const [theme, setTheme]             = useState(localStorage.getItem("theme") || "light");
-  const [persona, setPersona]         = useState("Eco Analyst");
-  const [pulsing, setPulsing]         = useState(false);
-  const [cameraOn, setCameraOn]       = useState(false);
-  const [loading, setLoading]         = useState(false);
-  const [scanLoading, setScanLoading] = useState(false);
+  const [messages, setMessages]           = useState([]);
+  const [trash, setTrash]                 = useState([]);
+  const [view, setView]                   = useState("chat");
+  const [input, setInput]                 = useState("");
+  const [theme, setTheme]                 = useState(localStorage.getItem("theme") || "light");
+  const [persona, setPersona]             = useState("Eco Analyst");
+  const [pulsing, setPulsing]             = useState(false);
+  const [cameraOn, setCameraOn]           = useState(false);
+  const [loading, setLoading]             = useState(false);
+  const [scanLoading, setScanLoading]     = useState(false);
   const [showGalleryBanner, setShowGalleryBanner] = useState(false);
 
   const videoRef  = useRef(null);
@@ -123,7 +171,6 @@ export default function App() {
     localStorage.setItem("theme", t);
   };
 
-  /* ── Detect shopping intent ── */
   const isShoppingQuery = (text) =>
     SHOPPING_TRIGGERS.some(trigger => text.toLowerCase().includes(trigger));
 
@@ -134,7 +181,6 @@ export default function App() {
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: text }]);
 
-    /* Show gallery banner if shopping intent detected */
     if (isShoppingQuery(text)) {
       setShowGalleryBanner(true);
     } else {
@@ -144,9 +190,16 @@ export default function App() {
     setLoading(true);
     try {
       const res = await sendMessage(text);
-      const { reply, persona: p } = res.data;
+      const { reply, persona: p, product_cards } = res.data;
       triggerPersona(p || "Eco Analyst");
-      setMessages(prev => [...prev, { role: "assistant", content: reply }]);
+      setMessages(prev => [
+        ...prev,
+        {
+          role: "assistant",
+          content: reply,
+          product_cards: product_cards || [],
+        },
+      ]);
     } catch {
       setMessages(prev => [
         ...prev,
@@ -213,7 +266,13 @@ export default function App() {
         triggerPersona(p || "Eco Analyst");
         setMessages(prev => [
           ...prev,
-          { role: "assistant", content: reply, product_card, meta: { expiry, storage } },
+          {
+            role: "assistant",
+            content: reply,
+            product_card,
+            product_cards: [],
+            meta: { expiry, storage },
+          },
         ]);
       } catch {
         setMessages(prev => [
@@ -226,6 +285,38 @@ export default function App() {
     }, "image/jpeg", 0.92);
   };
 
+  /* ── Parse inline markdown links ── */
+  const parseLine = (text) => {
+    const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkRegex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(<span key={`t-${lastIndex}`}>{text.slice(lastIndex, match.index)}</span>);
+      }
+      parts.push(
+        <a
+          key={`a-${match.index}`}
+          href={match[2]}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "#1D9E75", textDecoration: "underline", wordBreak: "break-all" }}
+        >
+          {match[1]} ↗
+        </a>
+      );
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push(<span key={`t-end-${lastIndex}`}>{text.slice(lastIndex)}</span>);
+    }
+
+    return parts.length > 0 ? parts : text;
+  };
+
   /* ── Markdown-lite renderer ── */
   const renderContent = (content) => {
     if (!content) return null;
@@ -235,9 +326,9 @@ export default function App() {
       if (line.startsWith("**") && line.endsWith("**"))
         return <p key={i} className="md-bold">{line.slice(2, -2)}</p>;
       if (line.startsWith("- ") || line.startsWith("* "))
-        return <li key={i} className="md-li">{line.slice(2)}</li>;
+        return <li key={i} className="md-li">{parseLine(line.slice(2))}</li>;
       if (line.trim() === "") return <br key={i} />;
-      return <p key={i} className="md-p">{line}</p>;
+      return <p key={i} className="md-p">{parseLine(line)}</p>;
     });
   };
 
@@ -256,29 +347,24 @@ export default function App() {
             className={`nav-btn ${view === "chat" ? "nav-btn--active" : ""}`}
             onClick={() => { setView("chat"); loadChat(); }}
             title="Chat"
-          >
-            💬
-          </button>
+          >💬</button>
 
-          {/* ── Shopping Gallery nav button ── */}
           <button
             className={`nav-btn ${view === "gallery" ? "nav-btn--active" : ""}`}
             onClick={() => setView(view === "gallery" ? "chat" : "gallery")}
             title="Eco Shopping Gallery"
-          >
-            🛍
-          </button>
+          >🛍</button>
 
           <button
             className={`nav-btn ${view === "trash" ? "nav-btn--active" : ""}`}
             onClick={() => { setView("trash"); loadTrash(); }}
             title="Trash"
-          >
-            🗑
-          </button>
+          >🗑</button>
+
           <button className="nav-btn danger" onClick={handlePurge} title="Reset Pulse">
             ⚡ Reset
           </button>
+
           <button className="nav-btn theme-btn" onClick={toggleTheme}>
             {theme === "light" ? "🌙" : "☀️"}
           </button>
@@ -324,7 +410,17 @@ export default function App() {
                   </div>
                 )}
 
+                {/* Single card from scan */}
                 {m.product_card && <ProductCard card={m.product_card} />}
+
+                {/* Multiple cards from chat */}
+                {m.product_cards && m.product_cards.length > 0 && (
+                  <div className="product-cards-grid">
+                    {m.product_cards.map((card, idx) => (
+                      <ProductCard key={idx} card={card} />
+                    ))}
+                  </div>
+                )}
               </div>
 
               {m.id && (
@@ -333,20 +429,16 @@ export default function App() {
             </div>
           ))}
 
-          {/* ── Shopping Gallery inline banner ── */}
+          {/* ── Gallery banner ── */}
           {showGalleryBanner && !loading && (
             <div className="gallery-banner">
               <span>🛍 Want to explore eco-friendly brands?</span>
-              <button
-                className="gallery-banner-btn"
-                onClick={() => { setView("gallery"); setShowGalleryBanner(false); }}
-              >
+              <button className="gallery-banner-btn"
+                onClick={() => { setView("gallery"); setShowGalleryBanner(false); }}>
                 Open Gallery →
               </button>
-              <button
-                className="gallery-banner-close"
-                onClick={() => setShowGalleryBanner(false)}
-              >
+              <button className="gallery-banner-close"
+                onClick={() => setShowGalleryBanner(false)}>
                 ✕
               </button>
             </div>
